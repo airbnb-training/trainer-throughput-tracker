@@ -1626,7 +1626,7 @@ const _SB_TABLE  = 'tracker_data';
 
 // ── Google Sheet import ──
 // Paste the deployed Apps Script URL here (or set it in ⚙ Sync → Google Sheet tab)
-let GSHEET_SCRIPT_URL = localStorage.getItem('trackerGSheetUrl') || '';
+let GSHEET_SCRIPT_URL = localStorage.getItem('trackerGSheetUrl') || 'https://script.google.com/a/macros/airbnb.com/s/AKfycbyRn7-hZXcvcxl7-ks3bdalMrV4GJLgAjrOt4hObprdfWeX1lGh8GKXn-ZLFfo97hhi5Q/exec';
 
 // ── JSONP helper — bypasses CORS for Google Workspace Apps Script deployments ──
 // Workspace URLs like /a/macros/<domain>/s/.../exec don't send Access-Control-Allow-Origin
@@ -4854,13 +4854,14 @@ function renderNestingView() {
   const bF=bSel.value, tF=tSel.value;
   const showAll=document.getElementById('nesting-show-all').checked;
 
-  // KPIs
-  const w030 = TRAINEES.filter(t=>t.nesting030?.length>0);
-  const w3190 = TRAINEES.filter(t=>t.nesting3190?.length>0);
+  // KPIs — only count trainees in active (non-closed) batches
+  const _activeBatchIds = new Set(BATCHES.filter(b => !b.closed).map(b => b.id));
+  const w030  = TRAINEES.filter(t => t.nesting030?.length  > 0 && _activeBatchIds.has(t.batchId));
+  const w3190 = TRAINEES.filter(t => t.nesting3190?.length > 0 && _activeBatchIds.has(t.batchId));
 
   document.getElementById('nesting-kpi-row').innerHTML=`
     <div class="kpi-card c7"><div class="kpi-label">AMBs in Phase 1</div><div class="kpi-value">${w030.length}</div><div class="kpi-sub">0–30 day nesting data</div></div>
-    <div class="kpi-card c2"><div class="kpi-label">AMBs in Phase 2</div><div class="kpi-value">${w3190.length}</div><div class="kpi-sub">31–90 day nesting data</div></div>
+    <div class="kpi-card c2"><div class="kpi-label">AMBs in Phase 2</div><div class="kpi-value">${w3190.length}</div><div class="kpi-sub">Extended nesting</div></div>
     <div class="kpi-card c1"><div class="kpi-label">Batches with Nesting</div><div class="kpi-value">${new Set([...w030,...w3190].map(t=>t.batchId)).size}</div><div class="kpi-sub">of ${BATCHES.length} total batches</div></div>
   `;
 
@@ -4958,9 +4959,10 @@ function renderNestingView() {
         <span style="font-weight:700;font-size:.88rem">${b.waveCode}</span>
         <span style="font-size:.72rem;color:var(--muted)">${tr?.name||'—'}</span>
         <span style="font-size:.7rem;color:var(--muted);background:var(--bg);border:1px solid var(--border);padding:1px 7px;border-radius:99px">${b.training||'—'}</span>
-        <span style="font-size:.72rem;font-weight:600;color:var(--accent2)">${with030.length} in Phase 1</span>
-        <span style="font-size:.72rem;font-weight:600;color:#34d399">${with3190.length} in Phase 2</span>
-        ${bGA030!==null?`<span style="font-size:.8rem;font-weight:700;color:${bgClr}">Phase 1 GA% ${bGA030}%</span>`:''}
+        ${b.closed
+          ? `<span style="font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:99px;background:rgba(0,166,153,.14);color:#00A699;border:1px solid rgba(0,166,153,.3)">Closed</span>`
+          : `<span style="font-size:.72rem;font-weight:600;color:var(--accent2)">${with030.length} in Phase 1</span>
+        <span style="font-size:.72rem;font-weight:600;color:#34d399">${with3190.length} in Phase 2</span>`}
         ${b.nestingThroughput != null ? (() => { const tp=_normTPn(b.nestingThroughput); const tc=tp>=90?'var(--green)':tp>=70?'var(--yellow)':'var(--red)'; return `<span style="font-size:.72rem;font-weight:700;color:${tc};background:${tc}18;border:1px solid ${tc}44;padding:2px 8px;border-radius:99px">🏠 ${tp}% nesting TP</span>`; })() : ''}
         <button onclick="event.stopPropagation();openBatchNestingWeeklyModal(${b.id})" style="margin-left:auto;padding:3px 10px;font-size:.70rem;font-weight:600;background:linear-gradient(90deg,rgba(255,255,255,.10),rgba(255,255,255,.04));color:#e0e0e0;border:1px solid rgba(255,255,255,.18);border-radius:5px;cursor:pointer;white-space:nowrap;flex-shrink:0" title="View weekly metric trends for this batch">📈 Trends</button>
         <span id="nst-chev-${b.id}" style="font-size:.7rem;color:var(--muted)">${isOpen?'▲':'▼'}</span>
@@ -4990,8 +4992,8 @@ function renderNestingView() {
     if (!batchCards && !showAll) return '';
 
     // LOB aggregate nesting stats
-    const lobWith030  = lBatches.reduce((s,b) => s + TRAINEES.filter(t=>t.batchId===b.id&&t.nesting030?.length>0).length, 0);
-    const lobWith3190 = lBatches.reduce((s,b) => s + TRAINEES.filter(t=>t.batchId===b.id&&t.nesting3190?.length>0).length, 0);
+    const lobWith030  = lBatches.reduce((s,b) => b.closed ? s : s + TRAINEES.filter(t=>t.batchId===b.id&&t.nesting030?.length>0).length, 0);
+    const lobWith3190 = lBatches.reduce((s,b) => b.closed ? s : s + TRAINEES.filter(t=>t.batchId===b.id&&t.nesting3190?.length>0).length, 0);
     const lobNestTP   = lBatches.filter(b=>b.nestingThroughput!=null);
     const nestTPStr   = (() => {
       if (!lobNestTP.length) return '';
@@ -5008,8 +5010,8 @@ function renderNestingView() {
       <div style="margin-bottom:6px;padding:10px 16px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px 10px 0 0;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <span style="font-size:.85rem;font-weight:700;color:var(--text)">${lob}</span>
         <span style="font-size:.7rem;color:var(--muted)">${lBatches.length} batch${lBatches.length!==1?'es':''}</span>
-        <span style="font-size:.7rem;color:var(--accent2);font-weight:600">${lobWith030} in Phase 1</span>
-        <span style="font-size:.7rem;color:#34d399;font-weight:600">${lobWith3190} in Phase 2</span>
+        ${lobWith030  > 0 ? `<span style="font-size:.7rem;color:var(--accent2);font-weight:600">${lobWith030} in Phase 1</span>` : ''}
+        ${lobWith3190 > 0 ? `<span style="font-size:.7rem;color:#34d399;font-weight:600">${lobWith3190} in Phase 2</span>` : ''}
         ${nestTPStr}
       </div>
       <div style="margin-bottom:20px">${batchCards || `<div class="card empty" style="border-radius:0 0 10px 10px">No nesting data for this LOB yet.</div>`}</div>`;
