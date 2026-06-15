@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listing Health Score — Airbnb Hackathon</title>
+    <style>
+        :root {
+            --red: #FF385C;
+            --dark: #222222;
+            --gray: #717171;
+            --light: #EBEBEB;
+            --bg: #F7F7F7;
+            --green: #34C759;
+            --yellow: #FF9500;
+            --warn: #FF3B30;
+            --teal: #00A699;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: white;
+            border-bottom: 1px solid var(--light);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--red);
+        }
+        .logo-icon {
+            width: 30px;
+            height: 30px;
+            background: var(--red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+        }
+        .header-badge {
+            background: linear-gradient(135deg, #FF385C, #FF7E8B);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── Layout ── */
+        .main {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .hero {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 36px 0 16px;
+        }
+        .hero h1 {
+            font-size: 34px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+        .hero h1 span { color: var(--red); }
+        .hero p {
+            font-size: 15px;
+            color: var(--gray);
+            max-width: 480px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: white;
+            border-radius: 18px;
+            border: 1px solid var(--light);
+            padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+        }
+        .card-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 22px;
+        }
+
+        /* ── Form ── */
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--gray);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--light);
+        }
+        .form-section { margin-bottom: 22px; }
+        .form-group { margin-bottom: 14px; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], input[type="number"], textarea, select {
+            width: 100%;
+            border: 1.5px solid var(--light);
+            border-radius: 10px;
+            padding: 9px 13px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: inherit;
+            color: var(--dark);
+            background: white;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--dark); }
+        textarea { resize: vertical; min-height: 88px; }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* ── Pills ── */
+        .pill-group { display: flex; flex-wrap: wrap; gap: 7px; }
+        .pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--bg);
+            border: 1.5px solid var(--light);
+            border-radius: 20px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .pill:hover { border-color: var(--dark); }
+        .pill.on { background: #FFF0F3; border-color: var(--red); color: var(--red); font-weight: 600; }
+        .pill input { display: none; }
+
+        /* ── Buttons ── */
+        .analyze-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #FF385C, #E0275B);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 4px;
+            letter-spacing: 0.2px;
+        }
+        .analyze-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(255,56,92,0.38);
+        }
+        .analyze-btn:active { transform: translateY(0); }
+
+        .demo-btn {
+            width: 100%;
+            background: none;
+            border: 1.5px solid var(--light);
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 18px;
+        }
+        .demo-btn:hover { border-color: var(--dark); color: var(--dark); }
+
+        /* ── Score panel ── */
+        .score-panel { position: sticky; top: 76px; align-self: start; }
+
+        .empty-state {
+            text-align: center;
+            padding: 36px 16px;
+            color: var(--gray);
+        }
+        .empty-icon { font-size: 44px; margin-bottom: 12px; }
+        .empty-state p { font-size: 13px; line-height: 1.7; }
+
+        /* ── Score circle ── */
+        .score-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 26px;
+        }
+        .score-circle {
+            position: relative;
+            width: 134px;
+            height: 134px;
+            margin-bottom: 12px;
+        }
+        .score-circle svg {
+            width: 134px;
+            height: 134px;
+            transform: rotate(-90deg);
+        }
+        .c-bg { fill: none; stroke: var(--light); stroke-width: 10; }
+        .c-fill {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            stroke-dasharray: 326;
+            stroke-dashoffset: 326;
+            transition: stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1), stroke 0.5s;
+        }
+        .score-num {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 34px;
+            font-weight: 800;
+            transition: color 0.5s;
+        }
+        .score-grade-label {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .score-grade-sub {
+            font-size: 12px;
+            color: var(--gray);
+            margin-top: 3px;
+        }
+
+        /* ── Dimension bars ── */
+        .dim { margin-bottom: 14px; }
+        .dim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .dim-name { font-size: 13px; font-weight: 500; }
+        .dim-score { font-size: 13px; font-weight: 700; }
+        .bar {
+            height: 7px;
+            background: var(--light);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 1s cubic-bezier(.4,0,.2,1), background 0.5s;
+        }
+
+        /* ── Recs ── */
+        .recs-card { grid-column: 1 / -1; }
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+        .rec-item {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 16px;
+            border-left: 4px solid var(--light);
+            animation: fadeUp 0.35s ease both;
+        }
+        .rec-item.high { border-left-color: var(--warn); }
+        .rec-item.medium { border-left-color: var(--yellow); }
+        .rec-item.low { border-left-color: var(--green); }
+
+        .rec-priority {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        .rec-priority.high { color: var(--warn); }
+        .rec-priority.medium { color: var(--yellow); }
+        .rec-priority.low { color: var(--green); }
+        .rec-title { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
+        .rec-desc { font-size: 12px; color: var(--gray); line-height: 1.55; }
+        .rec-impact { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--red); }
+
+        /* ── Simulator ── */
+        .sim-card { grid-column: 1 / -1; }
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 14px;
+        }
+        .sim-subtitle { font-size: 13px; color: var(--gray); margin-top: 2px; }
+        .sim-score-preview {
+            text-align: right;
+        }
+        .sim-score-label { font-size: 11px; color: var(--gray); }
+        .sim-score-val { font-size: 26px; font-weight: 800; color: var(--dark); transition: color 0.4s; }
+        .sim-toggles { display: flex; flex-wrap: wrap; gap: 10px; }
+        .sim-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg);
+            border: 1.5px solid var(--light);
+            border-radius: 10px;
+            padding: 9px 14px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.18s;
+        }
+        .sim-btn:hover { border-color: var(--dark); }
+        .sim-btn.active { background: #F0FFF7; border-color: var(--green); color: #1a7a5e; }
+        .sim-delta { font-weight: 800; color: var(--green); font-size: 12px; }
+
+        /* ── Tags ── */
+        .ai-tag {
+            display: inline-block;
+            background: #FFF0F3;
+            color: var(--red);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 7px;
+            vertical-align: middle;
+            letter-spacing: 0.3px;
+        }
+
+        /* ── Anim ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden { display: none !important; }
+
+        /* ── Superhost row ── */
+        .sh-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 13px;
+            border: 1.5px solid var(--light);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: border-color 0.2s;
+        }
+        .sh-row:hover { border-color: var(--dark); }
+        .sh-row input { width: auto; cursor: pointer; }
+
+        /* ── URL fetch bar ── */
+        .url-section {
+            background: linear-gradient(135deg, #fff5f7, #fff);
+            border: 1.5px solid #ffd6dd;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .url-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--red);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .url-row {
+            display: flex;
+            gap: 8px;
+        }
+        .url-input {
+            flex: 1;
+            border: 1.5px solid var(--light);
+            border-radius: 10px;
+            padding: 10px 13px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: inherit;
+            color: var(--dark);
+        }
+        .url-input:focus { border-color: var(--red); }
+        .fetch-btn {
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.18s;
+        }
+        .fetch-btn:hover { background: #e0275b; }
+        .fetch-btn:disabled { background: var(--light); color: var(--gray); cursor: default; }
+
+        .fetch-status {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 10px;
+            border-radius: 8px;
+        }
+        .fetch-status.loading { background: #f0f0f0; color: var(--gray); }
+        .fetch-status.success { background: #f0fff7; color: #1a7a5e; }
+        .fetch-status.error   { background: #fff0f3; color: var(--red); }
+
+        .fetch-spinner {
+            width: 13px;
+            height: 13px;
+            border: 2px solid var(--light);
+            border-top-color: var(--gray);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 16px 0;
+            color: var(--gray);
+            font-size: 12px;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--light);
+        }
+
+        @media (max-width: 780px) {
+            .main { grid-template-columns: 1fr; }
+            .score-panel { position: static; }
+            .rec-grid { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class="logo">
+        <div class="logo-icon">✦</div>
+        Listing Health Score
+    </div>
+    <div class="header-badge">Airbnb Hackathon 2026</div>
+</header>
+
+<main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+        <h1>Is your listing performing<br>at its <span>best?</span></h1>
+        <p>Enter your listing details for an instant health score and AI-powered recommendations to maximize bookings.</p>
+    </div>
+
+    <!-- ── Left: Input Form ── -->
+    <div class="card">
+        <div class="card-title">Your Listing Details</div>
+
+        <!-- URL fetch -->
+        <div class="url-section">
+            <div class="url-label">🔗 Paste Listing URL</div>
+            <div class="url-row">
+                <input type="text" class="url-input" id="listingUrl"
+                    placeholder="airbnb.com/rooms/12345678">
+                <button class="fetch-btn" id="fetchBtn" onclick="fetchListing()">Fetch →</button>
+            </div>
+            <div class="fetch-status hidden" id="fetchStatus"></div>
+        </div>
+
+        <div class="divider">or fill in manually</div>
+
+        <button class="demo-btn" onclick="loadDemo()">⚡ Load Demo Listing</button>
+
+        <!-- Content -->
+        <div class="form-section">
+            <div class="section-label">Content</div>
+            <div class="form-group">
+                <label>Listing Title</label>
+                <input type="text" id="title" placeholder="e.g. Cozy downtown loft with rooftop access" oninput="liveUpdate()">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="description" placeholder="Describe your space, neighborhood, and what makes it special..." oninput="liveUpdate()"></textarea>
+            </div>
+            <div class="form-group">
+                <label>House Rules</label>
+                <textarea id="houseRules" placeholder="No smoking, no parties, quiet hours after 10pm..." style="min-height:62px" oninput="liveUpdate()"></textarea>
+            </div>
+        </div>
+
+        <!-- Photos -->
+        <div class="form-section">
+            <div class="section-label">Photos</div>
+            <div class="form-group">
+                <label>Number of Photos</label>
+                <input type="number" id="photoCount" min="0" max="100" placeholder="0" oninput="liveUpdate()">
+            </div>
+            <div class="form-group">
+                <label style="margin-bottom:8px">Photo Types Covered</label>
+                <div class="pill-group" id="photoTypes">
+                    <label class="pill"><input type="checkbox" value="bedroom" onchange="pillToggle(this);liveUpdate()"> Bedroom</label>
+                    <label class="pill"><input type="checkbox" value="bathroom" onchange="pillToggle(this);liveUpdate()"> Bathroom</label>
+                    <label class="pill"><input type="checkbox" value="living" onchange="pillToggle(this);liveUpdate()"> Living Room</label>
+                    <label class="pill"><input type="checkbox" value="kitchen" onchange="pillToggle(this);liveUpdate()"> Kitchen</label>
+                    <label class="pill"><input type="checkbox" value="exterior" onchange="pillToggle(this);liveUpdate()"> Exterior</label>
+                    <label class="pill"><input type="checkbox" value="neighborhood" onchange="pillToggle(this);liveUpdate()"> Neighborhood</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amenities -->
+        <div class="form-section">
+            <div class="section-label">Amenities</div>
+            <div class="pill-group" id="amenities">
+                <label class="pill"><input type="checkbox" value="wifi" onchange="pillToggle(this);liveUpdate()"> WiFi</label>
+                <label class="pill"><input type="checkbox" value="kitchen" onchange="pillToggle(this);liveUpdate()"> Kitchen</label>
+                <label class="pill"><input type="checkbox" value="ac" onchange="pillToggle(this);liveUpdate()"> AC</label>
+                <label class="pill"><input type="checkbox" value="heating" onchange="pillToggle(this);liveUpdate()"> Heating</label>
+                <label class="pill"><input type="checkbox" value="washer" onchange="pillToggle(this);liveUpdate()"> Washer</label>
+                <label class="pill"><input type="checkbox" value="parking" onchange="pillToggle(this);liveUpdate()"> Parking</label>
+                <label class="pill"><input type="checkbox" value="pool" onchange="pillToggle(this);liveUpdate()"> Pool</label>
+                <label class="pill"><input type="checkbox" value="gym" onchange="pillToggle(this);liveUpdate()"> Gym</label>
+                <label class="pill"><input type="checkbox" value="pets" onchange="pillToggle(this);liveUpdate()"> Pet Friendly</label>
+                <label class="pill"><input type="checkbox" value="workspace" onchange="pillToggle(this);liveUpdate()"> Workspace</label>
+                <label class="pill"><input type="checkbox" value="ev" onchange="pillToggle(this);liveUpdate()"> EV Charger</label>
+                <label class="pill"><input type="checkbox" value="bbq" onchange="pillToggle(this);liveUpdate()"> BBQ Grill</label>
+            </div>
+        </div>
+
+        <!-- Trust -->
+        <div class="form-section">
+            <div class="section-label">Trust & Performance</div>
+            <div class="input-row" style="margin-bottom:12px">
+                <div class="form-group">
+                    <label>Average Rating</label>
+                    <input type="number" id="rating" min="1" max="5" step="0.1" placeholder="4.8" oninput="liveUpdate()">
+                </div>
+                <div class="form-group">
+                    <label>Number of Reviews</label>
+                    <input type="number" id="reviewCount" min="0" placeholder="24" oninput="liveUpdate()">
+                </div>
+                <div class="form-group">
+                    <label>Response Rate (%)</label>
+                    <input type="number" id="responseRate" min="0" max="100" placeholder="95" oninput="liveUpdate()">
+                </div>
+                <div class="form-group">
+                    <label>Response Time</label>
+                    <select id="responseTime" onchange="liveUpdate()">
+                        <option value="">Select...</option>
+                        <option value="1">Within an hour</option>
+                        <option value="2">Within a few hours</option>
+                        <option value="3">Within a day</option>
+                        <option value="4">A few days or more</option>
+                    </select>
+                </div>
+            </div>
+            <label class="sh-row" for="superhost">
+                <input type="checkbox" id="superhost" onchange="liveUpdate()">
+                Superhost Status ⭐
+            </label>
+        </div>
+
+        <!-- Availability -->
+        <div class="form-section">
+            <div class="section-label">Pricing & Availability</div>
+            <div class="input-row">
+                <div class="form-group">
+                    <label>Price Per Night ($)</label>
+                    <input type="number" id="price" min="0" placeholder="150" oninput="liveUpdate()">
+                </div>
+                <div class="form-group">
+                    <label>Minimum Nights</label>
+                    <input type="number" id="minNights" min="1" placeholder="2" oninput="liveUpdate()">
+                </div>
+                <div class="form-group">
+                    <label>Availability — next 90 days (%)</label>
+                    <input type="number" id="availability" min="0" max="100" placeholder="70" oninput="liveUpdate()">
+                </div>
+            </div>
+        </div>
+
+        <button class="analyze-btn" onclick="runAnalysis()">Analyze My Listing →</button>
+    </div>
+
+    <!-- ── Right: Score Panel ── -->
+    <div class="score-panel">
+        <div class="card">
+            <div class="card-title">Health Score</div>
+
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">🏠</div>
+                <p>Fill in your listing details<br>and click <strong>Analyze</strong> to get your<br>score and recommendations.</p>
+            </div>
+
+            <div id="scoreContent" class="hidden">
+                <div class="score-top">
+                    <div class="score-circle">
+                        <svg viewBox="0 0 120 120">
+                            <circle class="c-bg" cx="60" cy="60" r="52"/>
+                            <circle class="c-fill" id="cFill" cx="60" cy="60" r="52"/>
+                        </svg>
+                        <div class="score-num" id="scoreNum">0</div>
+                    </div>
+                    <div class="score-grade-label" id="gradeLabel">—</div>
+                    <div class="score-grade-sub" id="gradeSub">—</div>
+                </div>
+
+                <div id="dims">
+                    <div class="dim">
+                        <div class="dim-header">
+                            <div class="dim-name">📸 Visual Appeal</div>
+                            <div class="dim-score" id="s-visual">—</div>
+                        </div>
+                        <div class="bar"><div class="bar-fill" id="b-visual"></div></div>
+                    </div>
+                    <div class="dim">
+                        <div class="dim-header">
+                            <div class="dim-name">✍️ Content Quality</div>
+                            <div class="dim-score" id="s-content">—</div>
+                        </div>
+                        <div class="bar"><div class="bar-fill" id="b-content"></div></div>
+                    </div>
+                    <div class="dim">
+                        <div class="dim-header">
+                            <div class="dim-name">🛋️ Amenities</div>
+                            <div class="dim-score" id="s-amenities">—</div>
+                        </div>
+                        <div class="bar"><div class="bar-fill" id="b-amenities"></div></div>
+                    </div>
+                    <div class="dim">
+                        <div class="dim-header">
+                            <div class="dim-name">⭐ Trust Signals</div>
+                            <div class="dim-score" id="s-trust">—</div>
+                        </div>
+                        <div class="bar"><div class="bar-fill" id="b-trust"></div></div>
+                    </div>
+                    <div class="dim">
+                        <div class="dim-header">
+                            <div class="dim-name">📅 Availability</div>
+                            <div class="dim-score" id="s-availability">—</div>
+                        </div>
+                        <div class="bar"><div class="bar-fill" id="b-availability"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Recommendations ── -->
+    <div class="card recs-card hidden" id="recsCard">
+        <div class="card-title">
+            Personalized Recommendations
+            <span class="ai-tag">AI-Powered</span>
+        </div>
+        <div class="rec-grid" id="recGrid"></div>
+    </div>
+
+    <!-- ── Simulator ── -->
+    <div class="card sim-card hidden" id="simCard">
+        <div class="sim-header">
+            <div>
+                <div class="card-title" style="margin-bottom:2px">What-If Simulator</div>
+                <div class="sim-subtitle">Toggle improvements to see score impact</div>
+            </div>
+            <div class="sim-score-preview">
+                <div class="sim-score-label">Simulated Score</div>
+                <div class="sim-score-val" id="simScoreVal">—</div>
+            </div>
+        </div>
+        <div class="sim-toggles" id="simToggles"></div>
+    </div>
+
+</main>
+
+<script>
+// ── Scoring weights ──────────────────────────────────────
+const W = { visual: .22, content: .22, amenities: .20, trust: .22, availability: .14 };
+const HIGH_AMENITIES = ['wifi','kitchen','ac','parking','washer'];
+
+// ── Helpers ──────────────────────────────────────────────
+function getVal(id) { return document.getElementById(id).value.trim(); }
+function getNum(id) { return parseFloat(getVal(id)) || 0; }
+function getInt(id) { return parseInt(getVal(id)) || 0; }
+function getChecked(groupId) {
+    return [...document.querySelectorAll(`#${groupId} input:checked`)].map(c => c.value);
+}
+function color(s) { return s >= 80 ? '#34C759' : s >= 60 ? '#FF9500' : '#FF3B30'; }
+
+// ── Core scoring ─────────────────────────────────────────
+function calcScores(b = {}) {
+    const pc   = getInt('photoCount') + (b.photos ? 14 : 0);
+    const pt   = getChecked('photoTypes').length + (b.photoTypes ? 2 : 0);
+    const desc = getVal('description').split(/\s+/).filter(Boolean).length + (b.desc ? 130 : 0);
+    const title = getVal('title').length + (b.title ? 20 : 0);
+    const rules = getVal('houseRules').length + (b.rules ? 90 : 0);
+    const amens = getChecked('amenities');
+    const amenTotal = amens.length + (b.workspace ? 1 : 0);
+    const highVal = HIGH_AMENITIES.filter(a => amens.includes(a)).length;
+    const rating  = getNum('rating');
+    const reviews = getInt('reviewCount') + (b.reviews ? 20 : 0);
+    const rr      = getInt('responseRate');
+    const rt      = getInt('responseTime');
+    const sh      = document.getElementById('superhost').checked || b.superhost;
+    const mn      = getInt('minNights');
+    const avail   = getInt('availability');
+
+    // Visual (100)
+    let visual = 0;
+    if (pc >= 20) visual += 55; else if (pc >= 10) visual += 35; else if (pc >= 5) visual += 18; else if (pc >= 1) visual += 8;
+    visual += Math.min(pt * 7.5, 45);
+
+    // Content (100)
+    let content = 0;
+    if (title >= 45) content += 20; else if (title >= 22) content += 12; else if (title >= 5) content += 5;
+    if (desc >= 250) content += 50; else if (desc >= 150) content += 34; else if (desc >= 80) content += 20; else if (desc >= 15) content += 9;
+    if (rules >= 100) content += 30; else if (rules >= 30) content += 18; else if (rules >= 5) content += 8;
+
+    // Amenities (100)
+    const amenities = Math.min(highVal * 12, 60) + Math.min((amenTotal - highVal) * 5, 40);
+
+    // Trust (100)
+    let trust = 0;
+    if (rating >= 4.9) trust += 30; else if (rating >= 4.7) trust += 22; else if (rating >= 4.5) trust += 15; else if (rating >= 4.0) trust += 8;
+    if (reviews >= 50) trust += 25; else if (reviews >= 20) trust += 18; else if (reviews >= 5) trust += 10; else if (reviews >= 1) trust += 4;
+    if (rr >= 95) trust += 20; else if (rr >= 80) trust += 12; else if (rr >= 60) trust += 6;
+    if (rt === 1) trust += 15; else if (rt === 2) trust += 10; else if (rt === 3) trust += 5;
+    if (sh) trust += 10;
+
+    // Availability (100)
+    let availability = 0;
+    if (mn <= 1) availability += 40; else if (mn <= 2) availability += 30; else if (mn <= 3) availability += 18; else if (mn <= 7) availability += 8;
+    if (avail >= 70) availability += 60; else if (avail >= 50) availability += 42; else if (avail >= 30) availability += 24; else if (avail >= 10) availability += 10;
+
+    return {
+        visual:       Math.min(Math.round(visual), 100),
+        content:      Math.min(Math.round(content), 100),
+        amenities:    Math.min(Math.round(amenities), 100),
+        trust:        Math.min(Math.round(trust), 100),
+        availability: Math.min(Math.round(availability), 100),
+    };
+}
+
+function overall(s) {
+    return Math.round(s.visual*W.visual + s.content*W.content + s.amenities*W.amenities + s.trust*W.trust + s.availability*W.availability);
+}
+
+function gradeInfo(score) {
+    if (score >= 90) return { label: 'Excellent ✦', sub: 'Top 10% of listings' };
+    if (score >= 80) return { label: 'Great', sub: 'Above average performance' };
+    if (score >= 65) return { label: 'Good', sub: 'A few improvements will help' };
+    if (score >= 45) return { label: 'Fair', sub: 'Several areas need attention' };
+    return { label: 'Needs Work', sub: 'Start with high-priority fixes' };
+}
+
+// ── Render ───────────────────────────────────────────────
+let prevScore = 0;
+let animFrame;
+
+function animateTo(target) {
+    const start = prevScore;
+    const t0 = performance.now();
+    const dur = 900;
+    const el = document.getElementById('scoreNum');
+    function step(now) {
+        const p = Math.min((now - t0) / dur, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(start + (target - start) * ease);
+        if (p < 1) animFrame = requestAnimationFrame(step);
+        else prevScore = target;
+    }
+    cancelAnimationFrame(animFrame);
+    requestAnimationFrame(step);
+}
+
+function renderScores(scores, ov) {
+    animateTo(ov);
+
+    const circ = 2 * Math.PI * 52;
+    const fill = document.getElementById('cFill');
+    fill.style.strokeDasharray = circ;
+    fill.style.strokeDashoffset = circ - (ov / 100) * circ;
+    fill.style.stroke = color(ov);
+    document.getElementById('scoreNum').style.color = color(ov);
+
+    const { label, sub } = gradeInfo(ov);
+    document.getElementById('gradeLabel').textContent = label;
+    document.getElementById('gradeLabel').style.color = color(ov);
+    document.getElementById('gradeSub').textContent = sub;
+
+    for (const dim of ['visual','content','amenities','trust','availability']) {
+        const s = scores[dim];
+        const bar = document.getElementById(`b-${dim}`);
+        const txt = document.getElementById(`s-${dim}`);
+        bar.style.width = s + '%';
+        bar.style.background = color(s);
+        txt.textContent = s + '/100';
+        txt.style.color = color(s);
+    }
+}
+
+// ── Recommendations ──────────────────────────────────────
+function buildRecs(scores) {
+    const recs = [];
+    const pc    = getInt('photoCount');
+    const pt    = getChecked('photoTypes');
+    const words = getVal('description').split(/\s+/).filter(Boolean).length;
+    const titleL = getVal('title').length;
+    const rulesL = getVal('houseRules').length;
+    const amens = getChecked('amenities');
+    const rr    = getInt('responseRate');
+    const rt    = getInt('responseTime');
+    const sh    = document.getElementById('superhost').checked;
+    const mn    = getInt('minNights');
+    const avail = getInt('availability');
+
+    if (pc < 20) recs.push({ p:'high',  title:'Add More Photos',         desc:`You have ${pc} photos. Listings with 20+ photos get up to 40% more bookings.`, impact:'+8–12 pts' });
+    if (pt.length < 5) recs.push({ p:'medium', title:'Diversify Photo Coverage', desc:'Guests want to see every room. Missing types: ' + ['bedroom','bathroom','living','kitchen','exterior','neighborhood'].filter(x=>!pt.includes(x)).slice(0,3).join(', ') + '.', impact:'+5–8 pts' });
+    if (words < 250) recs.push({ p: words < 80 ? 'high' : 'medium', title:'Expand Your Description', desc:`${words} words written. Top listings average 250+. Share what makes your space unique.`, impact:'+6–10 pts' });
+    if (titleL < 42) recs.push({ p:'medium', title:'Optimize Your Title',       desc:`${titleL} characters used. Use the full space to highlight standout features like views or walkability.`, impact:'+3–5 pts' });
+    if (rulesL < 100) recs.push({ p:'low', title:'Add Detailed House Rules', desc:'Clear rules reduce disputes. Cover noise, guests, checkout, and parking.', impact:'+3–4 pts' });
+
+    const missingHigh = HIGH_AMENITIES.filter(a => !amens.includes(a));
+    if (missingHigh.length > 0) recs.push({ p:'medium', title:'Add High-Value Amenities', desc:`Guests filter by ${missingHigh.slice(0,3).join(', ')}. Adding these unlocks more search filters.`, impact:'+4–7 pts' });
+    if (!amens.includes('workspace')) recs.push({ p:'low', title:'Add a Dedicated Workspace', desc:'Remote work is a top search filter. A desk + monitor is enough to qualify.', impact:'+3 pts' });
+    if (rr < 90) recs.push({ p:'high', title:'Improve Response Rate', desc:`At ${rr}%, you're below Airbnb's 90% threshold that boosts search ranking.`, impact:'+5–8 pts' });
+    if (rt > 1) recs.push({ p:'medium', title:'Respond Faster', desc:'Hosts who reply within 1 hour are 3× more likely to convert inquiries to bookings.', impact:'+4–6 pts' });
+    if (!sh) recs.push({ p:'low', title:'Work Toward Superhost', desc:'Superhost badge lifts click-through rate ~20%. Requires 4.8+ rating and <1% cancellation.', impact:'+2–5 pts' });
+    if (mn > 3) recs.push({ p:'medium', title:'Reduce Minimum Nights', desc:`${mn}-night minimums filter out most weekend travellers. Try 2 nights.`, impact:'+4–6 pts' });
+    if (avail < 50) recs.push({ p:'high', title:'Open More Calendar Dates', desc:`${avail}% availability hides you from many searches. 70%+ significantly improves ranking.`, impact:'+5–8 pts' });
+
+    return recs.slice(0, 6);
+}
+
+function renderRecs(scores) {
+    const recs = buildRecs(scores);
+    const grid = document.getElementById('recGrid');
+    grid.innerHTML = recs.map(r => `
+        <div class="rec-item ${r.p}">
+            <div class="rec-priority ${r.p}">${r.p === 'high' ? '🔴 High Priority' : r.p === 'medium' ? '🟡 Medium Priority' : '🟢 Low Priority'}</div>
+            <div class="rec-title">${r.title}</div>
+            <div class="rec-desc">${r.desc}</div>
+            <div class="rec-impact">Est. impact: ${r.impact}</div>
+        </div>
+    `).join('');
+    document.getElementById('recsCard').classList.remove('hidden');
+}
+
+// ── Simulator ────────────────────────────────────────────
+const SIM_OPTIONS = [
+    { key:'photos',    label:'Add 14 more photos',              boost:{ photos:true } },
+    { key:'desc',      label:'Expand description to 250+ words',boost:{ desc:true } },
+    { key:'rules',     label:'Add detailed house rules',         boost:{ rules:true } },
+    { key:'superhost', label:'Earn Superhost status',            boost:{ superhost:true } },
+    { key:'workspace', label:'Add dedicated workspace',          boost:{ workspace:true } },
+    { key:'photoTypes',label:'Diversify photo types',            boost:{ photoTypes:true } },
+    { key:'reviews',   label:'Earn 20 more reviews',             boost:{ reviews:true } },
+];
+
+function renderSimulator(base) {
+    const baseOv = overall(base);
+    const container = document.getElementById('simToggles');
+    container.innerHTML = '';
+    document.getElementById('simScoreVal').textContent = baseOv;
+    document.getElementById('simScoreVal').style.color = color(baseOv);
+
+    SIM_OPTIONS.forEach(opt => {
+        const boostedOv = overall(calcScores(opt.boost));
+        const delta = boostedOv - baseOv;
+        if (delta <= 0) return;
+        const btn = document.createElement('div');
+        btn.className = 'sim-btn';
+        btn.dataset.key = opt.key;
+        btn.innerHTML = `<span>${opt.label}</span><span class="sim-delta">+${delta} pts</span>`;
+        btn.onclick = () => { btn.classList.toggle('active'); runSim(baseOv); };
+        container.appendChild(btn);
+    });
+
+    document.getElementById('simCard').classList.remove('hidden');
+}
+
+function runSim(baseOv) {
+    const active = [...document.querySelectorAll('.sim-btn.active')].map(b => b.dataset.key);
+    const boost = {};
+    active.forEach(k => { const opt = SIM_OPTIONS.find(o => o.key === k); if (opt) Object.assign(boost, opt.boost); });
+    const simScores = calcScores(boost);
+    const simOv = overall(simScores);
+    document.getElementById('simScoreVal').textContent = simOv;
+    document.getElementById('simScoreVal').style.color = color(simOv);
+    renderScores(simScores, simOv);
+}
+
+// ── State ────────────────────────────────────────────────
+let analyzed = false;
+
+function pillToggle(el) {
+    el.parentElement.classList.toggle('on', el.checked);
+}
+
+function liveUpdate() {
+    if (!analyzed) return;
+    const scores = calcScores();
+    const ov = overall(scores);
+    renderScores(scores, ov);
+    renderRecs(scores);
+    renderSimulator(scores);
+}
+
+function runAnalysis() {
+    analyzed = true;
+    prevScore = 0;
+    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('scoreContent').classList.remove('hidden');
+    liveUpdate();
+}
+
+// ── Demo listing datasets (simulated fetch results) ──────
+const LISTINGS = {
+    beach: {
+        title: 'Beachfront Bungalow — Steps from the Sand',
+        description: `Fall asleep to the sound of waves in this charming beachfront bungalow. Fully renovated in 2024 with light-filled interiors and a private deck overlooking the ocean.\n\nThe kitchen is stocked for cooking in, and the living room opens directly onto the beach path. Perfect for couples or solo travelers looking to unwind.\n\nLots of great restaurants, surf rentals, and beach bars are within walking distance.`,
+        houseRules: 'No pets. No shoes inside.',
+        photoCount: '9',
+        photoOn: ['bedroom','exterior'],
+        amenOn: ['wifi','kitchen','ac'],
+        rating: '4.91', reviewCount: '78', responseRate: '99',
+        responseTime: '1', superhost: true,
+        price: '310', minNights: '3', availability: '55',
+    },
+    cabin: {
+        title: 'Cozy Mountain Cabin with Hot Tub & Fireplace',
+        description: `Escape to the mountains in this newly listed cabin surrounded by pine trees. Features a private hot tub, wood-burning fireplace, and sweeping ridge views from the wraparound deck.\n\nSleeps up to 6 — great for families or friend groups. Fully equipped kitchen, board games, and hiking maps provided.`,
+        houseRules: '',
+        photoCount: '6',
+        photoOn: ['bedroom','living'],
+        amenOn: ['wifi','heating','parking'],
+        rating: '4.70', reviewCount: '8', responseRate: '75',
+        responseTime: '3', superhost: false,
+        price: '245', minNights: '5', availability: '30',
+    },
+    loft: {
+        title: 'Stylish Loft in Vibrant Mission District',
+        description: `Welcome to our sunny, thoughtfully designed loft in the heart of SF's Mission District.\n\nThe space features soaring 12-foot ceilings, exposed brick, and an abundance of natural light. The fully equipped kitchen is perfect for cooking in, and the open-plan living area comfortably fits your whole crew. Fast WiFi and a dedicated desk make this a great remote work base.\n\nYou're steps from amazing tacos, coffee, parks, and BART. We've hosted 100+ guests and love making people feel at home.`,
+        houseRules: 'No smoking. No parties. Quiet hours after 10pm.',
+        photoCount: '14',
+        photoOn: ['bedroom','living','kitchen'],
+        amenOn: ['wifi','kitchen','heating','workspace'],
+        rating: '4.82', reviewCount: '31', responseRate: '87',
+        responseTime: '2', superhost: false,
+        price: '175', minNights: '3', availability: '45',
+    },
+};
+
+function pickListing(url) {
+    const u = url.toLowerCase();
+    if (u.includes('beach') || u.includes('ocean') || u.includes('surf')) return LISTINGS.beach;
+    if (u.includes('cabin') || u.includes('mountain') || u.includes('forest')) return LISTINGS.cabin;
+    // Vary by listing ID if present
+    const match = u.match(/\d{5,}/);
+    if (match) {
+        const id = parseInt(match[0]);
+        if (id % 3 === 0) return LISTINGS.beach;
+        if (id % 3 === 1) return LISTINGS.cabin;
+    }
+    return LISTINGS.loft;
+}
+
+function populateFromData(d) {
+    document.getElementById('title').value        = d.title;
+    document.getElementById('description').value  = d.description;
+    document.getElementById('houseRules').value   = d.houseRules;
+    document.getElementById('photoCount').value   = d.photoCount;
+    document.getElementById('rating').value       = d.rating;
+    document.getElementById('reviewCount').value  = d.reviewCount;
+    document.getElementById('responseRate').value = d.responseRate;
+    document.getElementById('responseTime').value = d.responseTime;
+    document.getElementById('superhost').checked  = d.superhost;
+    document.getElementById('price').value        = d.price;
+    document.getElementById('minNights').value    = d.minNights;
+    document.getElementById('availability').value = d.availability;
+
+    document.querySelectorAll('#photoTypes .pill input').forEach(cb => {
+        cb.checked = d.photoOn.includes(cb.value);
+        cb.parentElement.classList.toggle('on', cb.checked);
+    });
+    document.querySelectorAll('#amenities .pill input').forEach(cb => {
+        cb.checked = d.amenOn.includes(cb.value);
+        cb.parentElement.classList.toggle('on', cb.checked);
+    });
+}
+
+function showFetchStatus(type, msg) {
+    const el = document.getElementById('fetchStatus');
+    el.className = `fetch-status ${type}`;
+    if (type === 'loading') {
+        el.innerHTML = `<div class="fetch-spinner"></div>${msg}`;
+    } else if (type === 'success') {
+        el.innerHTML = `✅ ${msg}`;
+    } else {
+        el.innerHTML = `❌ ${msg}`;
+    }
+}
+
+async function fetchListing() {
+    const url = document.getElementById('listingUrl').value.trim();
+    if (!url) {
+        showFetchStatus('error', 'Please paste an Airbnb listing URL first.');
+        document.getElementById('fetchStatus').classList.remove('hidden');
+        return;
+    }
+    if (!url.includes('airbnb') && !url.includes('/rooms/')) {
+        showFetchStatus('error', "Doesn't look like an Airbnb URL. Try airbnb.com/rooms/...");
+        document.getElementById('fetchStatus').classList.remove('hidden');
+        return;
+    }
+
+    const btn = document.getElementById('fetchBtn');
+    btn.disabled = true;
+    btn.textContent = 'Fetching...';
+    showFetchStatus('loading', 'Connecting to Airbnb...');
+    document.getElementById('fetchStatus').classList.remove('hidden');
+
+    try {
+        const resp = await fetch('http://localhost:5001/fetch-listing', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url }),
+        });
+
+        const json = await resp.json();
+
+        if (!json.success) {
+            showFetchStatus('error', json.error || 'Could not fetch listing.');
+            return;
+        }
+
+        // Map backend response → form fields
+        const d = json.data;
+        if (d.title)        document.getElementById('title').value        = d.title;
+        if (d.description)  document.getElementById('description').value  = d.description;
+        if (d.houseRules)   document.getElementById('houseRules').value   = d.houseRules;
+        if (d.photoCount)   document.getElementById('photoCount').value   = d.photoCount;
+        if (d.rating)       document.getElementById('rating').value       = d.rating;
+        if (d.reviewCount)  document.getElementById('reviewCount').value  = d.reviewCount;
+        if (d.responseRate) document.getElementById('responseRate').value = d.responseRate;
+        if (d.responseTime) document.getElementById('responseTime').value = d.responseTime;
+        if (d.price)        document.getElementById('price').value        = d.price;
+        if (d.minNights)    document.getElementById('minNights').value    = d.minNights;
+        if (d.superhost !== undefined) document.getElementById('superhost').checked = d.superhost;
+
+        // Photo types
+        if (d.photoTypes) {
+            document.querySelectorAll('#photoTypes .pill input').forEach(cb => {
+                cb.checked = d.photoTypes.includes(cb.value);
+                cb.parentElement.classList.toggle('on', cb.checked);
+            });
+        }
+        // Amenities
+        if (d.amenities) {
+            document.querySelectorAll('#amenities .pill input').forEach(cb => {
+                cb.checked = d.amenities.includes(cb.value);
+                cb.parentElement.classList.toggle('on', cb.checked);
+            });
+        }
+
+        const fieldsFound = Object.keys(d).filter(k => d[k] !== undefined && d[k] !== '' && d[k] !== false).length;
+        showFetchStatus('success', `Fetched "${d.title || 'listing'}" — ${fieldsFound} fields populated`);
+        runAnalysis();
+
+    } catch (err) {
+        // Backend not running
+        if (err.message.includes('fetch') || err.message.includes('Failed')) {
+            showFetchStatus('error', 'Backend not running. Start it with: python3 backend.py');
+        } else {
+            showFetchStatus('error', err.message);
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Fetch →';
+    }
+}
+
+// ── Demo data ────────────────────────────────────────────
+function loadDemo() {
+    populateFromData(LISTINGS.loft);
+    runAnalysis();
+}
+</script>
+
+</body>
+</html>
