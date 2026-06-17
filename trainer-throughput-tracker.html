@@ -2802,7 +2802,7 @@ function renderTrainerCards() {
       <div class="t-stats">
         <div><div class="t-stat-val">${tb.length}</div><div class="t-stat-lbl">Batches</div></div>
         <div><div class="t-stat-val">${total}</div><div class="t-stat-lbl">Trainees</div></div>
-        <div><div class="t-stat-val" style="color:${isInProgress?'var(--muted)':+gPct>=95?'var(--green)':+gPct>=80?'var(--yellow)':'var(--red)'};font-size:${isInProgress?'.72rem':'1.25rem'}">${isInProgress?'In Progress':gPct+'%'}</div><div class="t-stat-lbl">Throughput</div></div>
+        <div><div class="t-stat-val" style="color:${isInProgress?'var(--muted)':+gPct>=95?'var(--green)':+gPct>=80?'var(--yellow)':'var(--red)'}">${isInProgress?'In Progress':gPct+'%'}</div><div class="t-stat-lbl">Throughput</div></div>
       </div>
     </div>`;
   }).join('');
