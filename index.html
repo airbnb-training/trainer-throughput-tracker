@@ -2788,6 +2788,8 @@ function renderTrainerCards() {
     const total = tb.reduce((s,b)=>s+b.ambassadorHC,0);
     const grads = tb.reduce((s,b)=>s+b.graduateHC,0);
     const gPct  = total>0 ? (grads/total*100).toFixed(0) : 0;
+    const hasOpenBatch = tb.some(b => !b.closed);
+    const isInProgress = grads === 0 && hasOpenBatch;
     const color = AVATAR_BG[i%AVATAR_BG.length];
     return `<div class="t-card${selectedTrainerId===t.id?' selected':''}" onclick="selectTrainer(${t.id})">
       <div class="t-card-top">
@@ -2800,7 +2802,7 @@ function renderTrainerCards() {
       <div class="t-stats">
         <div><div class="t-stat-val">${tb.length}</div><div class="t-stat-lbl">Batches</div></div>
         <div><div class="t-stat-val">${total}</div><div class="t-stat-lbl">Trainees</div></div>
-        <div><div class="t-stat-val" style="color:${+gPct>=95?'var(--green)':+gPct>=80?'var(--yellow)':'var(--red)'}">${gPct}%</div><div class="t-stat-lbl">Throughput</div></div>
+        <div><div class="t-stat-val" style="color:${isInProgress?'var(--muted)':+gPct>=95?'var(--green)':+gPct>=80?'var(--yellow)':'var(--red)';font-size:${isInProgress?'.72rem':'1.25rem'}">${isInProgress?'In Progress':gPct+'%'}</div><div class="t-stat-lbl">Throughput</div></div>
       </div>
     </div>`;
   }).join('');
