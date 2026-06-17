@@ -530,7 +530,7 @@
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-size:.72rem;color:var(--muted);white-space:nowrap">Logging as:</span>
             <span id="historyUserLabel" style="font-size:.78rem;font-weight:600;color:var(--text)">—</span>
-            <button class="btn btn-ghost" onclick="_openChangeName()" style="padding:3px 8px;font-size:.7rem">✏️ Change</button>
+            <button class="btn btn-ghost admin-only" onclick="_openChangeName()" style="padding:3px 8px;font-size:.7rem">✏️ Change</button>
           </div>
           <select id="historyTypeFilter" onchange="renderHistoryView()" style="font-size:.78rem">
             <option value="all">All types</option>
@@ -822,7 +822,7 @@
     <div id="alDetailContent" style="overflow-y:auto;flex:1;min-height:0;padding-right:6px"></div>
     <div class="modal-actions" style="flex-shrink:0;border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
       <button class="btn btn-ghost" onclick="closeALDetailModal()">Close</button>
-      <button class="btn" onclick="openALModal(window._alDetailTraineeId);closeALDetailModal()">✏️ Edit AL Data</button>
+      <button class="btn admin-only" onclick="openALModal(window._alDetailTraineeId);closeALDetailModal()">✏️ Edit AL Data</button>
     </div>
   </div>
 </div>
@@ -882,7 +882,7 @@
     <div class="modal-actions" style="flex-shrink:0;border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
       <button class="btn btn-ghost" onclick="closeModal('nestingScoresModal')">Close</button>
       <button id="nestingCopyBtn" class="btn btn-ghost" onclick="_copyNestingScores()" style="border-color:var(--cyan);color:var(--cyan)" title="Copy as Excel-friendly table">📋 Copy to Excel</button>
-      <button class="btn" onclick="openNestingModal(window._nestingScoresTraineeId);closeModal('nestingScoresModal')">✏️ Edit Nesting Data</button>
+      <button class="btn admin-only" onclick="openNestingModal(window._nestingScoresTraineeId);closeModal('nestingScoresModal')">✏️ Edit Nesting Data</button>
     </div>
   </div>
 </div>
@@ -3473,7 +3473,7 @@ function toggleExpand(row, bId) {
             <td style="text-align:center;font-weight:600;color:${alC?'var(--cyan)':'var(--muted)'}">${alC||'—'}</td>
             <td style="text-align:center;font-weight:700;font-size:.8rem;color:${gaClr}">${alGA!==null?alGA+'%':'—'}</td>
             <td style="text-align:center">
-              <button onclick="openALModal(${t.id})" title="${al.length?'Edit Applied Learning':'Add Applied Learning'}"
+              <button class="admin-only" onclick="openALModal(${t.id})" title="${al.length?'Edit Applied Learning':'Add Applied Learning'}"
                 style="background:none;border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:.72rem;padding:2px 7px;color:${al.length?'var(--accent2)':'var(--muted)'};white-space:nowrap"
                 onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent2)'"
                 onmouseout="this.style.borderColor='var(--border)';this.style.color='${al.length?'var(--accent2)':'var(--muted)'}'">
@@ -3530,7 +3530,7 @@ function renderTrainees() {
         ${alGA!==null?alGA+'%':'—'}
       </td>
       <td style="text-align:center">
-        <button onclick="openALModal(${t.id})" title="${al.length?'Edit Applied Learning':'Add Applied Learning'}"
+        <button class="admin-only" onclick="openALModal(${t.id})" title="${al.length?'Edit Applied Learning':'Add Applied Learning'}"
           style="background:none;border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:.75rem;padding:2px 7px;color:${al.length?'var(--accent2)':'var(--muted)'};transition:all .15s"
           onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent2)'"
           onmouseout="this.style.borderColor='var(--border)';this.style.color='${al.length?'var(--accent2)':'var(--muted)'}'">
@@ -3666,13 +3666,13 @@ function renderALView() {
         <td style="text-align:center;color:var(--muted);font-size:.75rem">${al.length||'—'}</td>
         <td style="text-align:center">
           <div style="display:inline-flex;gap:5px;align-items:center">
-            <button onclick="openALModal(${t.id})"
+            <button class="admin-only" onclick="openALModal(${t.id})"
               style="background:none;border:1px solid ${hasAL?'var(--accent)':'var(--border)'};border-radius:5px;cursor:pointer;font-size:.73rem;padding:2px 8px;color:${hasAL?'var(--accent2)':'var(--muted)'};transition:all .15s"
               onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent2)'"
               onmouseout="this.style.borderColor='${hasAL?'var(--accent)':'var(--border)'}';this.style.color='${hasAL?'var(--accent2)':'var(--muted)'}'">
               📚${hasAL?' Edit':' Add'}
             </button>
-            ${hasAL?`<button onclick="deleteALData(${t.id})"
+            ${hasAL?`<button class="admin-only" onclick="deleteALData(${t.id})"
               title="Delete all AL data for ${t.name}"
               style="background:none;border:1px solid var(--red)40;border-radius:5px;cursor:pointer;font-size:.73rem;padding:2px 7px;color:var(--red);transition:all .15s"
               onmouseover="this.style.background='var(--red)20';this.style.borderColor='var(--red)'"
@@ -4975,7 +4975,7 @@ function renderNestingView() {
         <td style="text-align:center;font-size:.72rem;color:${p2trend.includes('↑')?'var(--green)':p2trend.includes('↓')?'var(--red)':'var(--muted)'}">${p2trend}</td>
         <td style="font-size:.72rem;color:${t.phase2TL?'#34d399':'var(--muted)'};padding:4px 8px">${t.phase2TL||'—'}</td>
         <td style="text-align:center">
-          <button onclick="openNestingModal(${t.id})" style="background:none;border:1px solid ${hasAny?'var(--accent)':'var(--border)'};border-radius:5px;cursor:pointer;font-size:.73rem;padding:2px 8px;color:${hasAny?'var(--accent2)':'var(--muted)'};transition:all .15s">🏠${hasAny?' Edit':' Add'}</button>
+          <button class="admin-only" onclick="openNestingModal(${t.id})" style="background:none;border:1px solid ${hasAny?'var(--accent)':'var(--border)'};border-radius:5px;cursor:pointer;font-size:.73rem;padding:2px 8px;color:${hasAny?'var(--accent2)':'var(--muted)'};transition:all .15s">🏠${hasAny?' Edit':' Add'}</button>
         </td>
       </tr>`;
     }).join('')||`<tr><td colspan="8" class="empty" style="padding:16px">No trainees match filters.</td></tr>`;
